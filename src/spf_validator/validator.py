@@ -132,6 +132,30 @@ def validate_spf_string(spf: str) -> list[str]:
             "The SPF record contains the 'ptr' mechanism which is not longer in the SPF specification and can result in a larger number of expensive DNS lookups."
         )
 
+    ###
+    # Recursive includes
+    ###
+    max_dns_queries = 10
+    include_regex = re.compile(r"\binclude:\S+\b")
+
+    def _get_includes_recursive(_spf: str) -> list:
+        inc = []
+
+        for i in include_regex.findall(_spf):
+            d = i.split(':', 1)[1]
+            inc.append(d)
+            inc.extend(_get_includes_recursive(
+                get_domain_spf_record(d)
+            ))
+
+        return inc
+
+    includes = _get_includes_recursive(spf)
+    if len(includes) > max_dns_queries:
+        issues.append(
+            f"Include count exceeded - {len(includes)}/{max_dns_queries} ({', '.join(includes)})"
+        )
+
     return issues
 
 
@@ -154,7 +178,7 @@ def get_domain_spf_record(domain: str) -> str:
 
     try:
         txt_records = dns.resolver.resolve(domain, "TXT")
-    except dns.resolver.NoAnswer:
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
         return ""
 
     # Loop through the records and find the SPF record.
