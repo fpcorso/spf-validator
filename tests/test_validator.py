@@ -57,7 +57,7 @@ def test_catchall_not_at_end():
 
 def test_permissive_catchall():
     """Test an SPF string with a permissive catchall."""
-    assert len(validator.validate_spf_string("v=spf1 +all")) > 0
+    assert len(validator.validate_spf_string("v=spf1 +all")) == 1
 
 
 def test_invalid_ip4():
@@ -84,3 +84,7 @@ def test_ptr_mechanism():
 def test_valid_spf_string():
     """Test a valid SPF string."""
     assert len(validator.validate_spf_string("v=spf1 include:example.com -all")) == 0
+
+
+def test_catchall_false_positive():
+    assert len(validator.validate_spf_string("v=spf1 include:all.example.com -all")) == 0

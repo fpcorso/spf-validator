@@ -77,8 +77,9 @@ def validate_spf_string(spf: str) -> list[str]:
     # Catchall checks
     ###
 
-    catchall_regex = re.compile(r"\S?all\b")
+    catchall_regex = re.compile(r"\s[~\+\-\?]?all\b")
     catchall_instances = catchall_regex.findall(spf)
+    print(catchall_instances)
 
     if len(catchall_instances) == 0:
         issues.append(
@@ -93,7 +94,8 @@ def validate_spf_string(spf: str) -> list[str]:
         if catchall_instance.span()[1] != len(spf):
             issues.append("The catchall is not at the end of the SPF record.")
 
-        if catchall_instance.group()[0] == "+" or catchall_instance.group()[0] == "a":
+        catchall = catchall_instance.group().strip()
+        if catchall[0] in ["+", "a"]:
             issues.append(
                 "The catchall is prefixed with + qualifier. This means that the SPF record will always pass which allows anyone to send emails claiming to be from you. This is not recommended."
             )
