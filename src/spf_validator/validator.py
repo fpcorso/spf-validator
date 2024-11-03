@@ -133,7 +133,31 @@ def validate_spf_string(spf: str) -> list[str]:
         )
 
     ###
-    # check for unknown parts
+    # Recursive includes
+    ###
+    max_dns_queries = 10
+    include_regex = re.compile(r"\binclude:\S+\b")
+
+    def _get_includes_recursive(_spf: str) -> list:
+        inc = []
+
+        for i in include_regex.findall(_spf):
+            d = i.split(':', 1)[1]
+            inc.append(d)
+            inc.extend(_get_includes_recursive(
+                get_domain_spf_record(d)
+            ))
+
+        return inc
+
+    includes = _get_includes_recursive(spf)
+    if len(includes) > max_dns_queries:
+        issues.append(
+            f"The SPF record has too many include mechanisms. The record allows for {max_dns_queries} includes. Your record has {len(includes)} includes: {', '.join(includes)}"
+        )
+
+    ###
+    # Check for unknown parts
     ###
 
     valid_parts_full = ['a', 'mx', 'ptr']
@@ -163,31 +187,7 @@ def validate_spf_string(spf: str) -> list[str]:
                     break
 
         if not any_valid:
-            issues.append(f"Found unknown part: '{part}'")
-    
-    ###
-    # Recursive includes
-    ###
-    max_dns_queries = 10
-    include_regex = re.compile(r"\binclude:\S+\b")
-
-    def _get_includes_recursive(_spf: str) -> list:
-        inc = []
-
-        for i in include_regex.findall(_spf):
-            d = i.split(':', 1)[1]
-            inc.append(d)
-            inc.extend(_get_includes_recursive(
-                get_domain_spf_record(d)
-            ))
-
-        return inc
-
-    includes = _get_includes_recursive(spf)
-    if len(includes) > max_dns_queries:
-        issues.append(
-            f"Include count exceeded - {len(includes)}/{max_dns_queries} ({', '.join(includes)})"
-        )
+            issues.append(f"Your SPF record contains unknown parts: '{part}'")
 
     return issues
 
