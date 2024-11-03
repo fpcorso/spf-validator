@@ -79,7 +79,6 @@ def validate_spf_string(spf: str) -> list[str]:
 
     catchall_regex = re.compile(r"\s[~\+\-\?]?all\b")
     catchall_instances = catchall_regex.findall(spf)
-    print(catchall_instances)
 
     if len(catchall_instances) == 0:
         issues.append(
