@@ -15,12 +15,13 @@ jobs:
       matrix:
         python-version: [ '3.9', '3.10', '3.11', '3.12', '3.13' ]
         os: [ ubuntu-latest, windows-latest, macos-latest ]
+        dnspython-version: [ '2.5.0', '2.6.1', '2.7.0']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: python -m pip install dnspython==2.7.0 pytest
+        run: python -m pip install dnspython==${{ matrix.dnspython-version }} pytest
       - name: Run tests
         run: python -m pytest
