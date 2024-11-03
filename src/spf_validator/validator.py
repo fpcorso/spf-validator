@@ -133,6 +133,39 @@ def validate_spf_string(spf: str) -> list[str]:
         )
 
     ###
+    # check for unknown parts
+    ###
+
+    valid_parts_full = ['a', 'mx', 'ptr']
+    valid_parts_beg = [
+        'v=spf',
+        'a:', 'mx:', 'ip4:', 'ip6:',
+        'exists:', 'include:', 'redirect:', 'exp:',
+        'all',
+    ]
+
+    for part in spf.split(' '):
+        if part == '':
+            continue
+
+        part = part.lower().strip()
+        if part.startswith('-') or part.startswith('+') or part.startswith('~') or part.startswith('?'):
+            part = part[1:]
+
+        any_valid = False
+        if part in valid_parts_full:
+            any_valid = True
+
+        else:
+            for beg in valid_parts_beg:
+                if part.startswith(beg):
+                    any_valid = True
+                    break
+
+        if not any_valid:
+            issues.append(f"Found unknown part: '{part}'")
+    
+    ###
     # Recursive includes
     ###
     max_dns_queries = 10
