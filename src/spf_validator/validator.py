@@ -77,8 +77,9 @@ def validate_spf_string(spf: str) -> list[str]:
     # Catchall checks
     ###
 
-    catchall_regex = re.compile(r"\S?all\b")
+    catchall_regex = re.compile(r"\s[~\+\-\?]?all\b")
     catchall_instances = catchall_regex.findall(spf)
+    print(catchall_instances)
 
     if len(catchall_instances) == 0:
         issues.append(
@@ -93,7 +94,8 @@ def validate_spf_string(spf: str) -> list[str]:
         if catchall_instance.span()[1] != len(spf):
             issues.append("The catchall is not at the end of the SPF record.")
 
-        if catchall_instance.group()[0] == "+" or catchall_instance.group()[0] == "a":
+        catchall = catchall_instance.group().strip()
+        if catchall[0] in ["+", "a"]:
             issues.append(
                 "The catchall is prefixed with + qualifier. This means that the SPF record will always pass which allows anyone to send emails claiming to be from you. This is not recommended."
             )
@@ -162,6 +164,30 @@ def validate_spf_string(spf: str) -> list[str]:
 
         if not any_valid:
             issues.append(f"Found unknown part: '{part}'")
+    
+    ###
+    # Recursive includes
+    ###
+    max_dns_queries = 10
+    include_regex = re.compile(r"\binclude:\S+\b")
+
+    def _get_includes_recursive(_spf: str) -> list:
+        inc = []
+
+        for i in include_regex.findall(_spf):
+            d = i.split(':', 1)[1]
+            inc.append(d)
+            inc.extend(_get_includes_recursive(
+                get_domain_spf_record(d)
+            ))
+
+        return inc
+
+    includes = _get_includes_recursive(spf)
+    if len(includes) > max_dns_queries:
+        issues.append(
+            f"Include count exceeded - {len(includes)}/{max_dns_queries} ({', '.join(includes)})"
+        )
 
     return issues
 
@@ -185,7 +211,7 @@ def get_domain_spf_record(domain: str) -> str:
 
     try:
         txt_records = dns.resolver.resolve(domain, "TXT")
-    except dns.resolver.NoAnswer:
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
         return ""
 
     # Loop through the records and find the SPF record.
