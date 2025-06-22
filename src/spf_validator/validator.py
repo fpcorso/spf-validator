@@ -46,17 +46,8 @@ def validate_spf_string(spf: str) -> list[str]:
     issues = []
 
     ###
-    # General checks
-    ###
-    if len(spf) > 255:
-        issues.append(
-            "The SPF record is longer than 255 characters which is not allowed."
-        )
-
-    ###
     # SPF version checks
     ###
-
     version_regex = re.compile(r"\bv=\w+\s")
     version_instances = version_regex.findall(spf)
 
@@ -76,7 +67,6 @@ def validate_spf_string(spf: str) -> list[str]:
     ###
     # Catchall checks
     ###
-
     catchall_regex = re.compile(r"\s[~\+\-\?]?all\b")
     catchall_instances = catchall_regex.findall(spf)
 
@@ -102,7 +92,6 @@ def validate_spf_string(spf: str) -> list[str]:
     ###
     # IP4 and IP6 checks
     ###
-
     ip4_regex = re.compile(r"\bip4:\S+\b")
     ip6_regex = re.compile(r"\bip6:\S+\b")
     ip_instances = ip4_regex.findall(spf) + ip6_regex.findall(spf)
@@ -123,7 +112,6 @@ def validate_spf_string(spf: str) -> list[str]:
     ###
     # Deprecated mechanism checks
     ###
-
     ptr_regex = re.compile(r"\bptr:?(\S+)?\b")
     ptr_instances = ptr_regex.findall(spf)
     if len(ptr_instances) > 0:
@@ -158,7 +146,6 @@ def validate_spf_string(spf: str) -> list[str]:
     ###
     # Check for unknown parts
     ###
-
     valid_parts_full = ['a', 'mx', 'ptr']
     valid_parts_beg = [
         'v=spf',
@@ -200,7 +187,7 @@ def get_domain_spf_record(domain: str) -> str:
     Returns:
         The SPF record for the domain.
     """
-    # If domain is a URL, remove protocol, paths, and ports from it.
+    # If the domain is a URL, remove protocol, paths, and ports from it.
     if "://" in domain:
         domain = urlparse(domain).hostname
 
