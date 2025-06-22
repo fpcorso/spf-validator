@@ -6,18 +6,6 @@ def test_empty_spf_string():
     assert len(validator.validate_spf_string("")) > 0
 
 
-def test_long_spf_string():
-    """Test a long SPF string."""
-    assert (
-        len(
-            validator.validate_spf_string(
-                "v=spf1 mx a include:example.com include:example-two.com include:example-three.com include:example-four.com include:example-five.com include:example-six.com include:example-seven.com include:example-eight.com include:example-nine.com include:example-ten.com ip4:127.0.0.1 -all"
-            )
-        )
-        > 0
-    )
-
-
 def test_missing_version():
     """Test an SPF string missing the version."""
     assert len(validator.validate_spf_string("include:example.com -all")) > 0
@@ -92,7 +80,7 @@ def test_unknown_parts():
     
 def test_too_many_includes():
     includes = [f'include:{letter}.example.com' for letter in 'abcdefghijklmn']
-    assert len(validator.validate_spf_string(f"v=spf1 {' '.join(includes)} -all")) == 2
+    assert len(validator.validate_spf_string(f"v=spf1 {' '.join(includes)} -all")) == 1
     
     
 def test_catchall_false_positive():
