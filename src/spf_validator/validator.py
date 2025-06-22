@@ -61,7 +61,7 @@ def validate_spf_string(spf: str) -> list[str]:
                 "There are more than one instance of the SPF version in this SPF record."
             )
 
-        if len(version_instances) > 0 and version_regex.search(spf).span()[0] != 0:
+        if len(version_instances) > 0 and version_regex.search(spf).start() != 0:
             issues.append("The SPF version is not at the beginning of the SPF record.")
 
     ###
@@ -80,7 +80,7 @@ def validate_spf_string(spf: str) -> list[str]:
 
         catchall_instance = catchall_regex.search(spf)
 
-        if catchall_instance.span()[1] != len(spf):
+        if catchall_instance.end() != len(spf):
             issues.append("The catchall is not at the end of the SPF record.")
 
         catchall = catchall_instance.group().strip()
