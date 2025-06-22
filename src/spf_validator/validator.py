@@ -14,6 +14,8 @@ def validate_domain_spf(domain: str) -> list[str]:
     Returns:
         A list of issues with the SPF record. If the list is empty, the SPF record is valid.
     """
+    if not domain:
+        return ['Invalid domain name provided for SPF validation.']
 
     issues = []
 
