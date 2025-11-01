@@ -226,8 +226,8 @@ def _normalize_domain(domain: str) -> str:
     if not domain:
         return ""
 
-    # Remove protocol, ports, query args, etc...
-    domain = urlparse(domain).hostname or ""
+    if "://" in domain:
+        domain = urlparse(domain).hostname or ""
 
     # Remove www subdomain (if present)
     if domain.startswith("www."):
