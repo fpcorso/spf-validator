@@ -189,7 +189,34 @@ def get_domain_spf_record(domain: str) -> str:
     Returns:
         The SPF record for the domain.
     """
-    # If the domain is a URL, remove protocol, paths, and ports from it.
+    domain = _normalize_domain(domain)
+    if not domain:
+        return ""
+
+    # Loop through the TXT records and find the SPF record.
+    txt_records = _get_txt_records_from_domain(domain)
+    for record in txt_records:
+        if "v=spf" in record:
+            return record
+
+    # If we get here, we didn't find an SPF record.
+    return ""
+
+
+def _normalize_domain(domain: str) -> str:
+    """
+    Normalize a given domain name by stripping protocol and common subdomain.
+
+    Args:
+        domain: The domain name or URL to be normalized.
+
+    Returns:
+        The normalized domain name as a string. Returns an empty string if the input
+        domain is empty.
+    """
+    if not domain:
+        return ""
+
     if "://" in domain:
         domain = urlparse(domain).hostname
 
@@ -197,17 +224,21 @@ def get_domain_spf_record(domain: str) -> str:
     if domain.startswith("www."):
         domain = domain[4:]
 
+    return domain
+
+def _get_txt_records_from_domain(domain: str) -> list:
+    """
+    Get the TXT records for a domain.
+
+    Args:
+        domain: The domain name.
+
+    Returns:
+        A list of TXT records for the domain.
+    """
     try:
         txt_records = dns.resolver.resolve(domain, "TXT")
+        return ["".join([a.decode("utf-8") for a in record.strings])
+                for record in txt_records]
     except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
-        return ""
-
-    # Loop through the records and find the SPF record.
-    for record in txt_records:
-        # Convert the record to a string.
-        record_text = "".join([a.decode("utf-8") for a in record.strings])
-        if "v=spf" in record_text:
-            return record_text
-
-    # If we get here, we didn't find an SPF record.
-    return ""
+        return []
