@@ -73,15 +73,37 @@ def test_valid_spf_string():
     """Test a valid SPF string."""
     assert len(validator.validate_spf_string("v=spf1 include:example.com -all")) == 0
 
-    
+
 def test_unknown_parts():
-    assert len(validator.validate_spf_string("v=spf1 random include:example.com -all")) == 1
-    
-    
+    assert (
+        len(validator.validate_spf_string("v=spf1 random include:example.com -all"))
+        == 1
+    )
+
+
 def test_too_many_includes():
-    includes = [f'include:{letter}.example.com' for letter in 'abcdefghijklmn']
+    includes = [f"include:{letter}.example.com" for letter in "abcdefghijklmn"]
     assert len(validator.validate_spf_string(f"v=spf1 {' '.join(includes)} -all")) == 1
-    
-    
+
+
 def test_catchall_false_positive():
-    assert len(validator.validate_spf_string("v=spf1 include:all.example.com -all")) == 0
+    assert (
+        len(validator.validate_spf_string("v=spf1 include:all.example.com -all")) == 0
+    )
+
+
+def test_normalize_domain_valid():
+    assert validator._normalize_domain("example.com") == "example.com"
+
+
+def test_normalize_domain_empty():
+    assert validator._normalize_domain("") == ""
+
+
+def test_normalize_domain_protocol():
+    assert validator._normalize_domain("https://example.com") == "example.com"
+
+
+def test_normalize_domain_strips_www_only():
+    assert validator._normalize_domain("www.example.com") == "example.com"
+    assert validator._normalize_domain("example.com") == "example.com"

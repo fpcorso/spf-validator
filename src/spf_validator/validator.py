@@ -15,7 +15,7 @@ def validate_domain_spf(domain: str) -> list[str]:
         A list of issues with the SPF record. If the list is empty, the SPF record is valid.
     """
     if not domain:
-        return ['Invalid domain name provided for SPF validation.']
+        return ["Invalid domain name provided for SPF validation."]
 
     issues = []
 
@@ -131,11 +131,9 @@ def validate_spf_string(spf: str) -> list[str]:
         inc = []
 
         for i in include_regex.findall(_spf):
-            d = i.split(':', 1)[1]
+            d = i.split(":", 1)[1]
             inc.append(d)
-            inc.extend(_get_includes_recursive(
-                get_domain_spf_record(d)
-            ))
+            inc.extend(_get_includes_recursive(get_domain_spf_record(d)))
 
         return inc
 
@@ -148,20 +146,31 @@ def validate_spf_string(spf: str) -> list[str]:
     ###
     # Check for unknown parts
     ###
-    valid_parts_full = ['a', 'mx', 'ptr']
+    valid_parts_full = ["a", "mx", "ptr"]
     valid_parts_beg = [
-        'v=spf',
-        'a:', 'mx:', 'ip4:', 'ip6:',
-        'exists:', 'include:', 'redirect:', 'exp:',
-        'all',
+        "v=spf",
+        "a:",
+        "mx:",
+        "ip4:",
+        "ip6:",
+        "exists:",
+        "include:",
+        "redirect:",
+        "exp:",
+        "all",
     ]
 
-    for part in spf.split(' '):
-        if part == '':
+    for part in spf.split(" "):
+        if part == "":
             continue
 
         part = part.lower().strip()
-        if part.startswith('-') or part.startswith('+') or part.startswith('~') or part.startswith('?'):
+        if (
+            part.startswith("-")
+            or part.startswith("+")
+            or part.startswith("~")
+            or part.startswith("?")
+        ):
             part = part[1:]
 
         any_valid = False
@@ -189,25 +198,59 @@ def get_domain_spf_record(domain: str) -> str:
     Returns:
         The SPF record for the domain.
     """
-    # If the domain is a URL, remove protocol, paths, and ports from it.
+    domain = _normalize_domain(domain)
+    if not domain:
+        return ""
+
+    # Loop through the TXT records and find the SPF record.
+    txt_records = _get_txt_records_from_domain(domain)
+    for record in txt_records:
+        if "v=spf" in record:
+            return record
+
+    # If we get here, we didn't find an SPF record.
+    return ""
+
+
+def _normalize_domain(domain: str) -> str:
+    """
+    Normalize a given domain name by stripping protocol and common subdomain.
+
+    Args:
+        domain: The domain name or URL to be normalized.
+
+    Returns:
+        The normalized domain name as a string. Returns an empty string if the input
+        domain is empty.
+    """
+    if not domain:
+        return ""
+
     if "://" in domain:
-        domain = urlparse(domain).hostname
+        domain = urlparse(domain).hostname or ""
 
     # Remove www subdomain (if present)
     if domain.startswith("www."):
         domain = domain[4:]
 
+    return domain
+
+
+def _get_txt_records_from_domain(domain: str) -> list:
+    """
+    Get the TXT records for a domain.
+
+    Args:
+        domain: The domain name.
+
+    Returns:
+        A list of TXT records for the domain.
+    """
     try:
         txt_records = dns.resolver.resolve(domain, "TXT")
+        return [
+            "".join([a.decode("utf-8") for a in record.strings])
+            for record in txt_records
+        ]
     except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
-        return ""
-
-    # Loop through the records and find the SPF record.
-    for record in txt_records:
-        # Convert the record to a string.
-        record_text = "".join([a.decode("utf-8") for a in record.strings])
-        if "v=spf" in record_text:
-            return record_text
-
-    # If we get here, we didn't find an SPF record.
-    return ""
+        return []

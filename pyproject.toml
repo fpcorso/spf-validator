@@ -1,15 +1,15 @@
 [project]
 name = "spf_validator"
-version = "1.3.1"
+version = "1.4.0"
 authors = [
   { name="Frank Corso", email="frank@frankcorso.me" },
 ]
 description = "Validates Sender Policy Framework (SPF) strings to ensure they are formatted correctly."
 readme = "README.md"
 license = {text = "MIT License"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
-    "dnspython>=2.5,<2.8"
+    "dnspython>=2.5,<2.9"
 ]
 keywords = ["spf", "sender policy framework", "email"]
 
