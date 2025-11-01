@@ -15,7 +15,7 @@ def validate_domain_spf(domain: str) -> list[str]:
         A list of issues with the SPF record. If the list is empty, the SPF record is valid.
     """
     if not domain:
-        return ['Invalid domain name provided for SPF validation.']
+        return ["Invalid domain name provided for SPF validation."]
 
     issues = []
 
@@ -131,11 +131,9 @@ def validate_spf_string(spf: str) -> list[str]:
         inc = []
 
         for i in include_regex.findall(_spf):
-            d = i.split(':', 1)[1]
+            d = i.split(":", 1)[1]
             inc.append(d)
-            inc.extend(_get_includes_recursive(
-                get_domain_spf_record(d)
-            ))
+            inc.extend(_get_includes_recursive(get_domain_spf_record(d)))
 
         return inc
 
@@ -148,20 +146,31 @@ def validate_spf_string(spf: str) -> list[str]:
     ###
     # Check for unknown parts
     ###
-    valid_parts_full = ['a', 'mx', 'ptr']
+    valid_parts_full = ["a", "mx", "ptr"]
     valid_parts_beg = [
-        'v=spf',
-        'a:', 'mx:', 'ip4:', 'ip6:',
-        'exists:', 'include:', 'redirect:', 'exp:',
-        'all',
+        "v=spf",
+        "a:",
+        "mx:",
+        "ip4:",
+        "ip6:",
+        "exists:",
+        "include:",
+        "redirect:",
+        "exp:",
+        "all",
     ]
 
-    for part in spf.split(' '):
-        if part == '':
+    for part in spf.split(" "):
+        if part == "":
             continue
 
         part = part.lower().strip()
-        if part.startswith('-') or part.startswith('+') or part.startswith('~') or part.startswith('?'):
+        if (
+            part.startswith("-")
+            or part.startswith("+")
+            or part.startswith("~")
+            or part.startswith("?")
+        ):
             part = part[1:]
 
         any_valid = False
@@ -226,6 +235,7 @@ def _normalize_domain(domain: str) -> str:
 
     return domain
 
+
 def _get_txt_records_from_domain(domain: str) -> list:
     """
     Get the TXT records for a domain.
@@ -238,7 +248,9 @@ def _get_txt_records_from_domain(domain: str) -> list:
     """
     try:
         txt_records = dns.resolver.resolve(domain, "TXT")
-        return ["".join([a.decode("utf-8") for a in record.strings])
-                for record in txt_records]
+        return [
+            "".join([a.decode("utf-8") for a in record.strings])
+            for record in txt_records
+        ]
     except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
         return []
