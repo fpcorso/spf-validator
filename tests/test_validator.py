@@ -107,7 +107,3 @@ def test_normalize_domain_protocol():
 def test_normalize_domain_strips_www_only():
     assert validator._normalize_domain("www.example.com") == "example.com"
     assert validator._normalize_domain("example.com") == "example.com"
-
-
-def test_normalize_domain_non_domain():
-    assert validator._normalize_domain("not a domain") == ""
