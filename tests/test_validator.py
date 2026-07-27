@@ -52,7 +52,12 @@ def test_invalid_ip4():
     """Test an SPF string with an invalid ip4."""
     assert len(validator.validate_spf_string("v=spf1 ip4:999.999.999.999 -all")) > 0
     assert len(validator.validate_spf_string("v=spf1 ip4:192.32.1 -all")) > 0
-    assert len(validator.validate_spf_string("v=spf1 ip4:192.32.1.17/64 -all")) > 0
+
+
+def test_non_canonical_ip():
+    """Test non-canonical IP networks (host bits set) which are valid per RFC 7208."""
+    assert len(validator.validate_spf_string("v=spf1 ip4:10.10.10.1/24 -all")) == 0
+    assert len(validator.validate_spf_string("v=spf1 ip6:fd00::1/8 -all")) == 0
 
 
 def test_invalid_ip6():
