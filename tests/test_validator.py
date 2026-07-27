@@ -112,3 +112,20 @@ def test_normalize_domain_protocol():
 def test_normalize_domain_strips_www_only():
     assert validator._normalize_domain("www.example.com") == "example.com"
     assert validator._normalize_domain("example.com") == "example.com"
+
+
+def test_redirects():
+    """Test SPF redirect modifier."""
+    # Valid syntax
+    assert len(validator.validate_spf_string("v=spf1 redirect=example.com")) == 0
+    # Record can't have both redirect and all
+    assert len(validator.validate_spf_string("v=spf1 redirect=example.com -all")) > 0
+    # Multiple redirects are not allowed
+    assert len(validator.validate_spf_string("v=spf1 redirect=example.com redirect=example.org")) > 0
+    # Redirect SHOULD be at the end
+    assert len(validator.validate_spf_string("v=spf1 redirect=example.com exp=example.com")) > 0
+
+
+def test_exp():
+    """Test SPF exp modifier."""
+    assert len(validator.validate_spf_string("v=spf1 exp=example.com -all")) == 0
