@@ -22,7 +22,8 @@ def test_version_not_at_beginning():
 
 
 def test_version_missing_space():
-    """Test an SPF string where there is no space between the version and next mechanism."""
+    """Test an SPF string where there is no space between the version
+    and next mechanism."""
     assert len(validator.validate_spf_string("v=spf1include:example.com -all")) > 0
 
 
@@ -121,9 +122,21 @@ def test_redirects():
     # Record can't have both redirect and all
     assert len(validator.validate_spf_string("v=spf1 redirect=example.com -all")) > 0
     # Multiple redirects are not allowed
-    assert len(validator.validate_spf_string("v=spf1 redirect=example.com redirect=example.org")) > 0
+    assert (
+        len(
+            validator.validate_spf_string(
+                "v=spf1 redirect=example.com redirect=example.org"
+            )
+        )
+        > 0
+    )
     # Redirect SHOULD be at the end
-    assert len(validator.validate_spf_string("v=spf1 redirect=example.com exp=example.com")) > 0
+    assert (
+        len(
+            validator.validate_spf_string("v=spf1 redirect=example.com exp=example.com")
+        )
+        > 0
+    )
 
 
 def test_exp():

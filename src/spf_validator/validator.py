@@ -12,7 +12,8 @@ def validate_domain_spf(domain: str) -> list[str]:
         domain: The domain to validate the SPF record for.
 
     Returns:
-        A list of issues with the SPF record. If the list is empty, the SPF record is valid.
+        A list of issues with the SPF record.
+        If the list is empty, the SPF record is valid.
     """
     if not domain:
         return ["Invalid domain name provided for SPF validation."]
@@ -38,7 +39,8 @@ def validate_spf_string(spf: str) -> list[str]:
         spf: The SPF string to validate.
 
     Returns:
-        A list of issues with the SPF string. If the list is empty, the SPF string is valid.
+        A list of issues with the SPF string.
+        If the list is empty, the SPF string is valid.
     """
 
     # If the string is empty, go ahead and bail now.
@@ -55,12 +57,14 @@ def validate_spf_string(spf: str) -> list[str]:
 
     if len(version_instances) == 0:
         issues.append(
-            "The SPF record is missing the SPF version. This should be at the beginning of the record and look like v=spf1"
+            "The SPF record is missing the SPF version. This should be at the "
+            "beginning of the record and look like v=spf1"
         )
     else:
         if len(version_instances) > 1:
             issues.append(
-                "There are more than one instance of the SPF version in this SPF record."
+                "There are more than one instance of the SPF version in "
+                "this SPF record."
             )
 
         if len(version_instances) > 0 and version_regex.search(spf).start() != 0:
@@ -77,11 +81,13 @@ def validate_spf_string(spf: str) -> list[str]:
 
     if len(catchall_instances) == 0 and len(redirect_instances) == 0:
         issues.append(
-            "There is not a catchall in this SPF record. There should be an 'all' at the end of the record or a 'redirect' modifier."
+            "There is not a catchall in this SPF record. There should be an 'all' "
+            "at the end of the record or a 'redirect' modifier."
         )
     elif len(catchall_instances) > 0 and len(redirect_instances) > 0:
         issues.append(
-            "The SPF record contains both a catchall and a redirect. The 'redirect' modifier will be ignored if there is an 'all' mechanism."
+            "The SPF record contains both a catchall and a redirect. The 'redirect' "
+            "modifier will be ignored if there is an 'all' mechanism."
         )
     elif len(catchall_instances) > 1:
         issues.append("There is more than one catchall in this SPF record.")
@@ -97,13 +103,16 @@ def validate_spf_string(spf: str) -> list[str]:
         catchall = catchall_instance.group().strip()
         if catchall[0] in ["+", "a"]:
             issues.append(
-                "The catchall is prefixed with + qualifier. This means that the SPF record will always pass which allows anyone to send emails claiming to be from you. This is not recommended."
+                "The catchall is prefixed with + qualifier. This means that the "
+                "SPF record will always pass which allows anyone to send emails "
+                "claiming to be from you. This is not recommended."
             )
 
     if len(redirect_instances) > 0:
         redirect_instance = redirect_regex.search(spf)
 
-        # RFC 7208 Section 6.1: "The "redirect" modifier SHOULD be at the end of the record."
+        # RFC 7208 Section 6.1: "The "redirect" modifier SHOULD be
+        # at the end of the record."
         if redirect_instance.end() != len(spf):
             issues.append("The redirect modifier is not at the end of the SPF record.")
 
@@ -134,7 +143,9 @@ def validate_spf_string(spf: str) -> list[str]:
     ptr_instances = ptr_regex.findall(spf)
     if len(ptr_instances) > 0:
         issues.append(
-            "The SPF record contains the 'ptr' mechanism which is not longer in the SPF specification and can result in a larger number of expensive DNS lookups."
+            "The SPF record contains the 'ptr' mechanism which is not longer in "
+            "the SPF specification and can result in a larger number of expensive "
+            "DNS lookups."
         )
 
     ###
@@ -156,7 +167,9 @@ def validate_spf_string(spf: str) -> list[str]:
     includes = _get_includes_recursive(spf)
     if len(includes) > max_dns_queries:
         issues.append(
-            f"The SPF record has too many include mechanisms. The record allows for {max_dns_queries} includes. Your record has {len(includes)} includes: {', '.join(includes)}"
+            f"The SPF record has too many include mechanisms. The record allows "
+            f"for {max_dns_queries} includes. Your record has {len(includes)} "
+            f"includes: {', '.join(includes)}"
         )
 
     ###
