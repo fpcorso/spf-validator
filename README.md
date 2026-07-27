@@ -38,7 +38,7 @@ issues_list = validator.validate_domain_spf('google.com')
 
 ## Contributing
 
-Community made feature requests, patches, bug reports, and contributions are always welcome.
+Community made feature requests, patches, bug reports, and contributions are always welcome. This project uses Poetry for dependency management and Ruff for linting.
 
 Please review [our contributing guidelines](https://github.com/fpcorso/spf-validator/blob/main/CONTRIBUTING.md) if you decide to make a contribution.
 

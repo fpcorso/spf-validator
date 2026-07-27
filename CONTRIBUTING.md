@@ -10,5 +10,7 @@ When contributing please ensure you follow the guidelines below so that we can k
 
 ## Pull Requests
 
-* Ensure you stick to the [PEP 8](https://peps.python.org/pep-0008/).
+* This project uses [Poetry](https://python-poetry.org/) for dependency management and [Ruff](https://beta.ruff.rs/docs/) for linting.
+* Ensure your code passes linting by running `poetry run ruff check .`.
+* Ensure all tests pass by running `poetry run pytest`.
 * When committing, reference your issue (if present) and include a note about the fix.
