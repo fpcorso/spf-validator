@@ -1,8 +1,7 @@
 name: Deploy Test Release
 on:
-  push:
-    branches:
-      - 'release/**'
+  release:
+    types: [published]
 jobs:
   test-deploy:
     runs-on: "ubuntu-latest"

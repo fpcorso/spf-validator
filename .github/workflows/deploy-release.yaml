@@ -1,0 +1,22 @@
+name: Deploy Release
+on:
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    environment: Production
+    env:
+      TWINE_USERNAME: ${{ secrets.TWINE_USERNAME_PYPI }}
+      TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD_PYPI }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install --upgrade build twine
+      - name: Build version
+        run: python -m build
+      - name: Deploy to PyPi
+        run: python -m twine upload dist/*
