@@ -107,7 +107,7 @@ def validate_spf_string(spf: str) -> list[str]:
                 issues.append(f"The IP {ip} is not valid.")
         else:
             try:
-                ipaddress.ip_network(ip)
+                ipaddress.ip_network(ip, strict=False)
             except ValueError:
                 issues.append(f"The IP {ip} is not valid.")
 
