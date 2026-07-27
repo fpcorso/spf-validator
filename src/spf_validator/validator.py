@@ -67,19 +67,28 @@ def validate_spf_string(spf: str) -> list[str]:
             issues.append("The SPF version is not at the beginning of the SPF record.")
 
     ###
-    # Catchall checks
+    # Catchall and redirect checks
     ###
     catchall_regex = re.compile(r"\s[~\+\-\?]?all\b")
     catchall_instances = catchall_regex.findall(spf)
 
-    if len(catchall_instances) == 0:
-        issues.append(
-            "There is not a catchall in this SPF record. There should be an 'all' at the end of the record."
-        )
-    else:
-        if len(catchall_instances) > 1:
-            issues.append("There is more than one catchall in this SPF record.")
+    redirect_regex = re.compile(r"\sredirect=\S+")
+    redirect_instances = redirect_regex.findall(spf)
 
+    if len(catchall_instances) == 0 and len(redirect_instances) == 0:
+        issues.append(
+            "There is not a catchall in this SPF record. There should be an 'all' at the end of the record or a 'redirect' modifier."
+        )
+    elif len(catchall_instances) > 0 and len(redirect_instances) > 0:
+        issues.append(
+            "The SPF record contains both a catchall and a redirect. The 'redirect' modifier will be ignored if there is an 'all' mechanism."
+        )
+    elif len(catchall_instances) > 1:
+        issues.append("There is more than one catchall in this SPF record.")
+    elif len(redirect_instances) > 1:
+        issues.append("There is more than one redirect modifier in this SPF record.")
+
+    if len(catchall_instances) > 0:
         catchall_instance = catchall_regex.search(spf)
 
         if catchall_instance.end() != len(spf):
@@ -90,6 +99,13 @@ def validate_spf_string(spf: str) -> list[str]:
             issues.append(
                 "The catchall is prefixed with + qualifier. This means that the SPF record will always pass which allows anyone to send emails claiming to be from you. This is not recommended."
             )
+
+    if len(redirect_instances) > 0:
+        redirect_instance = redirect_regex.search(spf)
+
+        # RFC 7208 Section 6.1: "The "redirect" modifier SHOULD be at the end of the record."
+        if redirect_instance.end() != len(spf):
+            issues.append("The redirect modifier is not at the end of the SPF record.")
 
     ###
     # IP4 and IP6 checks
@@ -155,8 +171,8 @@ def validate_spf_string(spf: str) -> list[str]:
         "ip6:",
         "exists:",
         "include:",
-        "redirect:",
-        "exp:",
+        "redirect=",
+        "exp=",
         "all",
     ]
 
