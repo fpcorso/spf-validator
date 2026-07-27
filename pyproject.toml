@@ -1,6 +1,6 @@
 [project]
 name = "spf-validator"
-version = "1.4.0"
+version = "1.4.1"
 description = "Validates Sender Policy Framework (SPF) strings to ensure they are formatted correctly."
 authors = [
     {name = "Frank Corso", email = "frank@frankcorso.me"}
